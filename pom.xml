@@ -12,9 +12,9 @@
 	<version>0.7-SNAPSHOT</version>
 	<name>Twitter plugin</name>
 	<description>
-        Plugin for Hudson that adds tweets to Twitter (http://www.twitter.com/) for build events.
-    </description>
-	<url>http://wiki.hudson-ci.org/display/HUDSON/Twitter+Plugin</url>
+		Plugin for Jenkins that adds tweets to Twitter (http://www.twitter.com/) for build events.
+	</description>
+	<url>http://wiki.jenkins-ci.org/display/JENKINS/Twitter+Plugin</url>
 
 	<repositories>
 		<repository>
@@ -71,11 +71,11 @@
 		</plugins>
 	</build>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>repo.jenkins-ci.org</id>
-            <url>http://repo.jenkins-ci.org/public/</url>
-        </pluginRepository>
-    </pluginRepositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>repo.jenkins-ci.org</id>
+			<url>http://repo.jenkins-ci.org/public/</url>
+		</pluginRepository>
+	</pluginRepositories>
 </project>  
 
