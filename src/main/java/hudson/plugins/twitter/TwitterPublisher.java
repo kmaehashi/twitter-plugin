@@ -75,20 +75,6 @@ public class TwitterPublisher extends Notifier {
 		return result;
 	}
 
-	private static String createTinyUrl(String url) throws IOException {
-		HttpClient client = new HttpClient();
-		GetMethod gm = new GetMethod("http://tinyurl.com/api-create.php?url="
-				+ url.replace(" ", "%20"));
-
-		int status = client.executeMethod(gm);
-		if (status == HttpStatus.SC_OK) {
-			return gm.getResponseBodyAsString();
-		} else {
-			throw new IOException("Non-OK response code back from tinyurl: " + status);
-		}
-
-	}
-
 	public Boolean getIncludeUrl() {
 		return includeUrl;
 	}
@@ -124,16 +110,11 @@ public class TwitterPublisher extends Notifier {
 			}
 		} catch (Exception ignore) {
 		}
-		String tinyUrl = "";
+		String buildUrl = "";
 		if (shouldIncludeUrl()) {
-			String absoluteBuildURL = ((DescriptorImpl) getDescriptor()).getUrl() + build.getUrl();
-			try {
-				tinyUrl = createTinyUrl(absoluteBuildURL);
-			} catch (Exception e) {
-				tinyUrl = "?";
-			}
+			buildUrl = ((DescriptorImpl) getDescriptor()).getUrl() + build.getUrl();
 		}
-		return String.format("%s%s:%s $%d - %s", toblame, result, projectName, build.number, tinyUrl);
+		return String.format("%s%s:%s $%d - %s", toblame, result, projectName, build.number, buildUrl);
 	}
 
 	private String getUserString(AbstractBuild<?, ?> build) throws IOException {
