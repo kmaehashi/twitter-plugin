@@ -17,8 +17,6 @@ import hudson.tasks.Publisher;
 import hudson.tasks.Mailer;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,8 +39,6 @@ import twitter4j.http.AccessToken;
  * @author justinedelson
  */
 public class TwitterPublisher extends Notifier {
-	private static final List<String> VALUES_REPLACED_WITH_NULL = Arrays.asList("", "(Default)", "(System Default)");
-
 	private static final Logger LOGGER = Logger.getLogger(TwitterPublisher.class.getName());
 
 	private Boolean onlyOnFailureOrRecovery;
@@ -55,21 +51,18 @@ public class TwitterPublisher extends Notifier {
 
 	@DataBoundConstructor
 	public TwitterPublisher(String onlyOnFailureOrRecovery,	String includeUrl) {
-		this(cleanToBoolean(onlyOnFailureOrRecovery), cleanToBoolean(includeUrl));
+		this(toBoolean(onlyOnFailureOrRecovery), toBoolean(includeUrl));
 	}
 
-	private static String cleanToString(String string) {
-		return VALUES_REPLACED_WITH_NULL.contains(string) ? null : string;
-	}
-
-	private static Boolean cleanToBoolean(String string) {
-		Boolean result = null;
-		if ("true".equals(string) || "Yes".equals(string)) {
-			result = Boolean.TRUE;
-		} else if ("false".equals(string) || "No".equals(string)) {
-			result = Boolean.FALSE;
+	private static Boolean toBoolean(String string) {
+		if (string == null) {
+			return null;
+		} else if (string.toLowerCase().equals("true")) {
+			return true;
+		} else if (string.toLowerCase().equals("false")) {
+			return false;
 		}
-		return result;
+		return null;
 	}
 
 	public Boolean getIncludeUrl() {
