@@ -91,7 +91,7 @@ public class TwitterPublisher extends Notifier {
 	}
 
 	private String createTwitterStatusMessage(AbstractBuild<?, ?> build) {
-		String projectName = build.getProject().getName();
+		String projectName = build.getProject().getFullDisplayName();
 		String result = build.getResult().toString();
 		String toblame = "";
 		try {
