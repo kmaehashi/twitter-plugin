@@ -23,6 +23,11 @@ import java.util.logging.Logger;
 
 import net.sf.json.JSONObject;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.codec.EncoderException;
+import org.apache.commons.codec.net.URLCodec;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -67,6 +72,26 @@ public class TwitterPublisher extends Notifier {
 		return null;
 	}
 
+	private static String createTinyUrl(String url) throws IOException {
+		HttpClient client = new HttpClient();
+		URLCodec codec = new URLCodec();
+		
+		String encodedUrl;
+		try {
+			encodedUrl = codec.encode(url);
+		} catch (EncoderException e) {
+			throw new IOException("Failed to encode the URL: " + url, e);
+		}
+		
+		GetMethod gm = new GetMethod("http://tinyurl.com/api-create.php?url=" + encodedUrl);
+		int status = client.executeMethod(gm);
+		if (status == HttpStatus.SC_OK) {
+			return gm.getResponseBodyAsString();
+		} else {
+			throw new IOException("Non-OK response code (" + status + ") back from TinyURL: " + url);
+		}
+	}
+
 	public Boolean getOnlyOnFailureOrRecovery() {
 		return onlyOnFailureOrRecovery;
 	}
@@ -108,6 +133,15 @@ public class TwitterPublisher extends Notifier {
 		String buildUrl = ((DescriptorImpl) getDescriptor()).getUrl() + build.getUrl();
 
 		String tweetBody = getTweetFormat();
+
+		// Generate TinyURL if needed
+		if (tweetBody.contains("${buildUrl}")) {
+			try {
+				buildUrl = createTinyUrl(buildUrl);
+			} catch (Exception e) {
+				LOGGER.log(Level.WARNING, "Failed to generate TinyURL; using full URL instead", e);
+			}
+		}
 
 		// TODO: consider any better ways to expand variables?
 		tweetBody = tweetBody
