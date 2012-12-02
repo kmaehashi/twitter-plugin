@@ -254,7 +254,7 @@ public class TwitterPublisher extends Notifier {
 		@Override
 		public Publisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
 			if (hudsonUrl == null) {
-				// if Hudson URL is not configured yet, infer some default
+				// if Jenkins URL is not configured yet, infer some default
 				hudsonUrl = Functions.inferHudsonURL(req);
 				save();
 			}
