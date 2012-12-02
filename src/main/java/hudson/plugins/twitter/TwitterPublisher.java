@@ -37,21 +37,23 @@ import twitter4j.http.AccessToken;
 /**
  * @author cactusman
  * @author justinedelson
+ * @author kmaehashi
  */
 public class TwitterPublisher extends Notifier {
+	public static final String DEFAULT_FORMAT = "${toblame} ${result}:${projectName} $${buildNumber}";
 	private static final Logger LOGGER = Logger.getLogger(TwitterPublisher.class.getName());
 
 	private Boolean onlyOnFailureOrRecovery;
-	private Boolean includeUrl;
+	private String tweetFormat;
 
-	private TwitterPublisher(Boolean onlyOnFailureOrRecovery, Boolean includeUrl) {
+	private TwitterPublisher(Boolean onlyOnFailureOrRecovery, String tweetFormat) {
 		this.onlyOnFailureOrRecovery = onlyOnFailureOrRecovery;
-		this.includeUrl = includeUrl;
+		this.tweetFormat = tweetFormat;
 	}
 
 	@DataBoundConstructor
-	public TwitterPublisher(String onlyOnFailureOrRecovery,	String includeUrl) {
-		this(toBoolean(onlyOnFailureOrRecovery), toBoolean(includeUrl));
+	public TwitterPublisher(String onlyOnFailureOrRecovery, String tweetFormat) {
+		this(toBoolean(onlyOnFailureOrRecovery), tweetFormat);
 	}
 
 	private static Boolean toBoolean(String string) {
@@ -65,12 +67,15 @@ public class TwitterPublisher extends Notifier {
 		return null;
 	}
 
-	public Boolean getIncludeUrl() {
-		return includeUrl;
-	}
-
 	public Boolean getOnlyOnFailureOrRecovery() {
 		return onlyOnFailureOrRecovery;
+	}
+
+	public String getTweetFormat() {
+		if (tweetFormat == null || tweetFormat.equals("")) {
+			return DEFAULT_FORMAT;
+		}
+		return tweetFormat;
 	}
 
 	public BuildStepMonitor getRequiredMonitorService() {
@@ -100,11 +105,18 @@ public class TwitterPublisher extends Notifier {
 			}
 		} catch (Exception ignore) {
 		}
-		String buildUrl = "";
-		if (shouldIncludeUrl()) {
-			buildUrl = ((DescriptorImpl) getDescriptor()).getUrl() + build.getUrl();
-		}
-		return String.format("%s%s:%s $%d - %s", toblame, result, projectName, build.number, buildUrl);
+		String buildUrl = ((DescriptorImpl) getDescriptor()).getUrl() + build.getUrl();
+
+		String tweetBody = getTweetFormat();
+
+		// TODO: consider any better ways to expand variables?
+		tweetBody = tweetBody
+					.replaceAll("\\$\\{toblame\\}", toblame)
+					.replaceAll("\\$\\{result\\}", result)
+					.replaceAll("\\$\\{projectName\\}", projectName)
+					.replaceAll("\\$\\{buildNumber\\}", String.valueOf(build.number))
+					.replaceAll("\\$\\{buildUrl\\}", buildUrl);
+		return tweetBody;
 	}
 
 	private String getUserString(AbstractBuild<?, ?> build) throws IOException {
@@ -154,14 +166,6 @@ public class TwitterPublisher extends Notifier {
 		}
 	}
 
-	protected boolean shouldIncludeUrl() {
-		if (includeUrl != null) {
-			return includeUrl.booleanValue();
-		} else {
-			return ((DescriptorImpl) getDescriptor()).includeUrl;
-		}
-	}
-
 	/**
 	 * Determine if this build results should be tweeted. Uses the local
 	 * settings if they are provided, otherwise the global settings.
@@ -195,7 +199,7 @@ public class TwitterPublisher extends Notifier {
 		
 		public String hudsonUrl;
 		public boolean onlyOnFailureOrRecovery;
-		public boolean includeUrl;
+		public String tweetFormat;
 
 		public DescriptorImpl() {
 			super(TwitterPublisher.class);
@@ -204,13 +208,14 @@ public class TwitterPublisher extends Notifier {
 
 		@Override
 		public boolean configure(StaplerRequest req, JSONObject formData) throws FormException {
-			// set the booleans to false as defaults
-			includeUrl = false;
 			onlyOnFailureOrRecovery = false;
+			tweetFormat = TwitterPublisher.DEFAULT_FORMAT;
+			if (includeUrl) {
+				tweetFormat += " - ${buildUrl}";
+			}
 
 			req.bindParameters(this, "twitter.");
 			hudsonUrl = Mailer.descriptor().getUrl();
-
 
 			save();
 			return super.configure(req, formData);
@@ -233,12 +238,12 @@ public class TwitterPublisher extends Notifier {
 			return hudsonUrl;
 		}
 
-		public boolean isIncludeUrl() {
-			return includeUrl;
-		}
-
 		public boolean isOnlyOnFailureOrRecovery() {
 			return onlyOnFailureOrRecovery;
+		}
+
+		public String getTweetFormat() {
+			return tweetFormat;
 		}
 
 		@Override
@@ -279,5 +284,7 @@ public class TwitterPublisher extends Notifier {
         public transient String id;
 		@Deprecated
         public transient String password;
+		@Deprecated
+		public transient boolean includeUrl;
 	}
 }

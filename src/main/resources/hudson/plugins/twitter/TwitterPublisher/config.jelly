@@ -9,12 +9,8 @@
         </select>
     </f:entry>
 
-    <f:entry title="${%Include the Build URL in the Tweet}" help="/plugin/twitter/help-project-url.html">
-      <select class="setting-input" name="twitter.includeUrl">
-          <option>${%Inherit Global Configuration}</option>
-          <f:option selected="${instance.includeUrl==true}" value="true">${%Yes}</f:option>
-          <f:option selected="${instance.includeUrl==false}" value="false">${%No}</f:option>
-        </select>
+    <f:entry title="${%Tweet Format}" help="/plugin/twitter/help-project-format.html">
+        <input class="setting-input" name="twitter.tweetFormat" value="${instance.tweetFormat}" />
     </f:entry>
 
   </f:advanced>
