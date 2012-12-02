@@ -49,6 +49,10 @@ public class TwitterPublisher extends Notifier {
 	private static final Logger LOGGER = Logger.getLogger(TwitterPublisher.class.getName());
 
 	private Boolean onlyOnFailureOrRecovery;
+
+	@Deprecated
+	public transient boolean includeUrl;
+
 	private String tweetFormat;
 
 	private TwitterPublisher(Boolean onlyOnFailureOrRecovery, String tweetFormat) {
